@@ -60,7 +60,6 @@ def process_document_task(self, document_id: int):
 
         publish_progress(document_id, "field_extraction_started")
         
-        # Real-time token streaming using Gemini or Mock
         summary_text = ""
         if settings.GEMINI_API_KEY:
             model = genai.GenerativeModel('gemini-2.5-flash')
@@ -71,7 +70,7 @@ def process_document_task(self, document_id: int):
                     summary_text += chunk.text
                     publish_progress(document_id, "token_stream", {"field": "summary", "chunk": chunk.text})
         else:
-            # Mock streaming fallback
+            
             words = "This is a fallback summary since no API key was provided. It is streaming in real time to simulate AI generation across the Pub/Sub system.".split(" ")
             for word in words:
                 chunk = word + " "
