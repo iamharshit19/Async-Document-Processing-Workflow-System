@@ -24,7 +24,7 @@ if settings.CELERY_BROKER_URL.startswith("rediss://"):
 redis_client = redis.Redis.from_url(
     settings.REDIS_URL, 
     decode_responses=True,
-    ssl_cert_reqs=None if settings.REDIS_URL.startswith("rediss://") else None
+    ssl_cert_reqs=ssl.CERT_NONE if settings.REDIS_URL.startswith("rediss://") else None
 )
 
 if settings.GEMINI_API_KEY:
