@@ -15,7 +15,7 @@ export default function Login() {
             formData.append('username', username);
             formData.append('password', password);
 
-            const res = await fetch('http://localhost:8000/api/auth/token', {
+            const res = await fetch('https://async-document-processing-workflow-system-6qkb.onrender.com/api/auth/token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
