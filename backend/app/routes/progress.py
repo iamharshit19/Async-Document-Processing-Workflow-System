@@ -33,4 +33,7 @@ async def stream_progress(id: int, request: Request):
             await pubsub.unsubscribe(f"document_progress_{id}")
             await redis.aclose()
 
-    return EventSourceResponse(event_generator())
+    return EventSourceResponse(
+        event_generator(),
+        headers={"Access-Control-Allow-Origin": "*"}
+    )
