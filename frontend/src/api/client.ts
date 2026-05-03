@@ -39,14 +39,14 @@ export const getDocument = async (id: number): Promise<Document> => {
 
 export const uploadDocument = async (file: File): Promise<Document> => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('files', file);
 
     const response = await api.post('/documents/upload', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
     });
-    return response.data;
+    return response.data[0];
 };
 
 export const updateExtractedData = async (id: number, data: Partial<Document['extracted_data']>): Promise<Document> => {
