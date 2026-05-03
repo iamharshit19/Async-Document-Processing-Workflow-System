@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { JobStatus, type Document, type PaginatedDocuments } from '../types';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'https://async-document-processing-workflow-system-6qkb.onrender.com/api';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -40,7 +40,7 @@ export const getDocument = async (id: number): Promise<Document> => {
 export const uploadDocument = async (file: File): Promise<Document> => {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     const response = await api.post('/documents/upload', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
