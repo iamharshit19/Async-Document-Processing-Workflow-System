@@ -149,7 +149,7 @@ export default function DocumentDetail() {
                 </div>
 
                 {isProcessing && (
-                    <div style={{ marginTop: '2rem', background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '12px' }}>
+                    <div style={{ marginTop: '2rem', background: '#f9fafb', border: '1px solid #e5e7eb', padding: '1.5rem', borderRadius: '12px' }}>
                         <h3 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--primary)' }}>
                             Live Progress: <span className="animate-pulse">{progressEvent || doc.status}...</span>
                         </h3>
@@ -157,7 +157,7 @@ export default function DocumentDetail() {
                             <div className="progress-bar" style={{ width: progressEvent === 'job_started' ? '20%' : progressEvent.includes('parsing') ? '50%' : progressEvent.includes('extraction') ? '80%' : progressEvent === 'token_stream' ? '90%' : '100%' }}></div>
                         </div>
                         {liveSummary && (
-                            <div style={{ marginTop: '1.5rem', background: 'rgba(0,0,0,0.4)', padding: '1rem', borderRadius: '8px', borderLeft: '3px solid var(--primary)' }}>
+                            <div style={{ marginTop: '1.5rem', background: '#ffffff', padding: '1rem', borderRadius: '8px', border: '1px solid #e5e7eb', borderLeft: '3px solid var(--primary)' }}>
                                 <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 600 }}>AI Generating Summary</div>
                                 <div style={{ lineHeight: 1.6, color: 'var(--text-primary)' }}>{liveSummary}<span className="animate-pulse">|</span></div>
                             </div>
@@ -174,7 +174,7 @@ export default function DocumentDetail() {
                 )}
 
                 {doc.status === JobStatus.FAILED && (
-                    <div style={{ marginTop: '2rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--danger)', padding: '1.5rem', borderRadius: '12px' }}>
+                    <div style={{ marginTop: '2rem', background: '#fef2f2', border: '1px solid var(--danger)', padding: '1.5rem', borderRadius: '12px' }}>
                         <h3 style={{ color: 'var(--danger)', marginBottom: '1rem' }}>Processing Failed</h3>
                         <button className="btn btn-outline" onClick={handleRetry} style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }}>
                             <RefreshCw size={18} /> Retry Job

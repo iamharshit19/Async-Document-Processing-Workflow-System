@@ -75,7 +75,7 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
                         textAlign: 'center',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease',
-                        background: isDragging ? 'rgba(59, 130, 246, 0.1)' : 'rgba(0,0,0,0.2)'
+                        background: isDragging ? 'rgba(37, 99, 235, 0.05)' : '#f9fafb'
                     }}
                 >
                     <input 
