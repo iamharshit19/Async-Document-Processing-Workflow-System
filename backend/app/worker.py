@@ -1,5 +1,6 @@
 import os
 import json
+import ssl
 import time
 import random
 import redis
@@ -15,7 +16,16 @@ celery_app = Celery(
     backend=settings.CELERY_RESULT_BACKEND
 )
 
-redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+# Configure SSL for rediss:// (Upstash) connections
+if settings.CELERY_BROKER_URL.startswith("rediss://"):
+    celery_app.conf.broker_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
+    celery_app.conf.redis_backend_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
+
+redis_client = redis.Redis.from_url(
+    settings.REDIS_URL, 
+    decode_responses=True,
+    ssl_cert_reqs=None if settings.REDIS_URL.startswith("rediss://") else None
+)
 
 if settings.GEMINI_API_KEY:
     genai.configure(api_key=settings.GEMINI_API_KEY)

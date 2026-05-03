@@ -12,7 +12,11 @@ router = APIRouter()
 async def stream_progress(id: int, request: Request):
 
     async def event_generator():
-        redis = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        redis_kwargs = {"decode_responses": True}
+        if settings.REDIS_URL.startswith("rediss://"):
+            import ssl as _ssl
+            redis_kwargs["ssl_cert_reqs"] = _ssl.CERT_NONE
+        redis = aioredis.from_url(settings.REDIS_URL, **redis_kwargs)
         pubsub = redis.pubsub()
         await pubsub.subscribe(f"document_progress_{id}")
 
