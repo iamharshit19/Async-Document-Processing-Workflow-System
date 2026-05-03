@@ -59,7 +59,10 @@ export default function DocumentDetail() {
             if (data.event === 'token_stream') {
                 setLiveSummary(prev => prev + data.payload.chunk);
             } else {
-                setProgressLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), event: data.event }]);
+                let msg = data.event;
+                if (data.payload?.error) msg += `: ${data.payload.error}`;
+                if (data.payload?.reason) msg += `: ${data.payload.reason}`;
+                setProgressLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), event: msg }]);
             }
          
             if (data.event === 'job_completed' || data.event === 'job_failed') {
