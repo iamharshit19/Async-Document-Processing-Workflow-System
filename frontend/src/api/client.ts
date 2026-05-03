@@ -7,8 +7,24 @@ const api = axios.create({
     baseURL: API_BASE_URL,
 });
 
-export const getDocuments = async (skip: number = 0, limit: number = 20, search?: string, status?: JobStatus): Promise<PaginatedDocuments> => {
-    const params = new URLSearchParams({ skip: skip.toString(), limit: limit.toString() });
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+}, (error) => Promise.reject(error));
+
+api.interceptors.response.use((response) => response, (error) => {
+    if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+    }
+    return Promise.reject(error);
+});
+
+export const getDocuments = async (skip: number = 0, limit: number = 20, search?: string, status?: JobStatus, sort_by: string = 'created_at', sort_order: string = 'desc'): Promise<PaginatedDocuments> => {
+    const params = new URLSearchParams({ skip: skip.toString(), limit: limit.toString(), sort_by, sort_order });
     if (search) params.append('search', search);
     if (status) params.append('status', status);
 
@@ -45,6 +61,11 @@ export const finalizeDocument = async (id: number): Promise<Document> => {
 
 export const retryDocumentJob = async (id: number): Promise<Document> => {
     const response = await api.post(`/documents/${id}/retry`);
+    return response.data;
+};
+
+export const cancelDocumentJob = async (id: number): Promise<Document> => {
+    const response = await api.post(`/documents/${id}/cancel`);
     return response.data;
 };
 

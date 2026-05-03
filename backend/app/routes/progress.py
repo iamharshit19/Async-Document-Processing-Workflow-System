@@ -10,10 +10,7 @@ router = APIRouter()
 
 @router.get("/{id}/stream")
 async def stream_progress(id: int, request: Request):
-    """
-    Server-Sent Events endpoint that subscribes to a Redis Pub/Sub channel 
-    for a specific document and streams the events to the client.
-    """
+
     async def event_generator():
         redis = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
         pubsub = redis.pubsub()
@@ -25,7 +22,7 @@ async def stream_progress(id: int, request: Request):
                     break
                 message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
                 if message is not None:
-                    # Message data is a JSON string
+                 
                     yield {
                         "event": "message",
                         "id": str(id),

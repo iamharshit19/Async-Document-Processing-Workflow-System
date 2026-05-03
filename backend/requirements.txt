@@ -7,4 +7,10 @@ celery==5.3.6
 redis==5.0.1
 pydantic-settings==2.1.0
 python-multipart==0.0.6
+python-jose[cryptography]
+passlib[bcrypt]
+pytest
+pytest-asyncio
+httpx==0.23.0
 sse-starlette==1.8.2
+google-generativeai==0.4.0

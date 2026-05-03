@@ -18,6 +18,7 @@ class Document(Base):
     content_type = Column(String)
     size = Column(Integer)
     status = Column(Enum(JobStatus), default=JobStatus.QUEUED)
+    task_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
     

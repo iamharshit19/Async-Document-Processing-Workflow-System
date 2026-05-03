@@ -3,6 +3,7 @@ import json
 import time
 import random
 import redis
+import google.generativeai as genai
 from celery import Celery
 from .config import settings
 from .database import SessionLocal
@@ -15,6 +16,9 @@ celery_app = Celery(
 )
 
 redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+
+if settings.GEMINI_API_KEY:
+    genai.configure(api_key=settings.GEMINI_API_KEY)
 
 def publish_progress(document_id: int, event: str, payload: dict = None):
     if payload is None:
@@ -37,26 +41,40 @@ def process_document_task(self, document_id: int):
             publish_progress(document_id, "job_failed", {"reason": "Document not found"})
             return
 
-        # Update status
         document.status = JobStatus.PROCESSING
         db.commit()
 
-        # Step 1: Parsing
         publish_progress(document_id, "document_parsing_started")
-        time.sleep(2) # Simulate work
+        time.sleep(1) # Simulate parsing
         publish_progress(document_id, "document_parsing_completed")
 
-        # Step 2: Extraction
         publish_progress(document_id, "field_extraction_started")
-        time.sleep(3) # Simulate work
         
-        # Generate mock extracted data
+        # Real-time token streaming using Gemini or Mock
+        summary_text = ""
+        if settings.GEMINI_API_KEY:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            prompt = f"Write a short, professional summary (3-4 sentences) for a generic '{document.filename}' document."
+            response = model.generate_content(prompt, stream=True)
+            for chunk in response:
+                if chunk.text:
+                    summary_text += chunk.text
+                    publish_progress(document_id, "token_stream", {"field": "summary", "chunk": chunk.text})
+        else:
+            # Mock streaming fallback
+            words = "This is a fallback summary since no API key was provided. It is streaming in real time to simulate AI generation across the Pub/Sub system.".split(" ")
+            for word in words:
+                chunk = word + " "
+                summary_text += chunk
+                publish_progress(document_id, "token_stream", {"field": "summary", "chunk": chunk})
+                time.sleep(0.1)
+
         extracted = ExtractedData(
             document_id=document_id,
             title=f"Extracted {document.filename}",
-            category=random.choice(["Finance", "Legal", "Engineering", "HR"]),
-            summary="This is an automatically generated summary from the mock async pipeline.",
-            keywords=["async", "workflow", "celery", "test"],
+            category="AI Processed",
+            summary=summary_text.strip(),
+            keywords=["gemini", "real-time", "streaming"],
             is_finalized=False
         )
         db.add(extracted)
@@ -68,7 +86,6 @@ def process_document_task(self, document_id: int):
 
     except Exception as exc:
         db.rollback()
-        # Mark as failed
         document = db.query(Document).filter(Document.id == document_id).first()
         if document:
             document.status = JobStatus.FAILED

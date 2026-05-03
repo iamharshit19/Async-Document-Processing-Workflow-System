@@ -10,7 +10,7 @@ interface UploadModalProps {
 
 export default function UploadModal({ isOpen, onClose, onUploadSuccess }: UploadModalProps) {
     const [isDragging, setIsDragging] = useState(false);
-    const [file, setFile] = useState<File | null>(null);
+    const [files, setFiles] = useState<File[]>([]);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -29,17 +29,20 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
         e.preventDefault();
         setIsDragging(false);
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            setFile(e.dataTransfer.files[0]);
+            setFiles(Array.from(e.dataTransfer.files));
         }
     };
 
     const handleUpload = async () => {
-        if (!file) return;
+        if (files.length === 0) return;
         setIsUploading(true);
         try {
-            await uploadDocument(file);
+            for (const file of files) {
+                await uploadDocument(file);
+            }
             onUploadSuccess();
             onClose();
+            setFiles([]);
         } catch (error) {
             console.error("Upload failed", error);
             alert("Upload failed. Please try again.");
@@ -79,17 +82,28 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }: Upload
                         type="file" 
                         ref={fileInputRef} 
                         style={{ display: 'none' }} 
-                        onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        multiple
+                        onChange={(e) => setFiles(e.target.files ? Array.from(e.target.files) : [])}
                     />
                     <UploadCloud size={48} color={isDragging ? 'var(--primary)' : 'var(--text-secondary)'} style={{ margin: '0 auto 1rem' }} />
                     <p style={{ color: 'var(--text-secondary)' }}>
-                        {file ? file.name : "Drag & drop a file here, or click to select"}
+                        {files.length > 0 ? `${files.length} file(s) selected` : "Drag & drop file(s) here, or click to select"}
                     </p>
                 </div>
 
+                {files.length > 0 && (
+                    <div style={{ marginTop: '1rem', maxHeight: '100px', overflowY: 'auto' }}>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.875rem' }}>
+                            {files.map((f, i) => (
+                                <li key={i} style={{ padding: '0.25rem 0', color: 'var(--text-secondary)' }}>{f.name}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
                 <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                     <button className="btn btn-outline" onClick={onClose} disabled={isUploading}>Cancel</button>
-                    <button className="btn btn-primary" onClick={handleUpload} disabled={!file || isUploading}>
+                    <button className="btn btn-primary" onClick={handleUpload} disabled={files.length === 0 || isUploading}>
                         {isUploading ? <div className="loading-spinner"></div> : "Upload & Process"}
                     </button>
                 </div>

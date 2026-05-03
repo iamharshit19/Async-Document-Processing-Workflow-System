@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, RefreshCw, Save } from 'lucide-react';
-import { getDocument, updateExtractedData, finalizeDocument, retryDocumentJob, getProgressStreamUrl } from '../api/client';
+import { ArrowLeft, CheckCircle, RefreshCw, Save, XCircle } from 'lucide-react';
+import { getDocument, updateExtractedData, finalizeDocument, retryDocumentJob, cancelDocumentJob, getProgressStreamUrl } from '../api/client';
 import { JobStatus, type Document } from '../types';
 
 export default function DocumentDetail() {
@@ -9,12 +9,12 @@ export default function DocumentDetail() {
     const navigate = useNavigate();
     const [doc, setDoc] = useState<Document | null>(null);
     const [loading, setLoading] = useState(true);
-    
-    // Live progress state
+
     const [progressEvent, setProgressEvent] = useState<string>('');
     const [progressLogs, setProgressLogs] = useState<{time: string, event: string}[]>([]);
+    const [liveSummary, setLiveSummary] = useState<string>('');
 
-    // Form state
+    
     const [formData, setFormData] = useState({
         title: '',
         category: '',
@@ -45,7 +45,7 @@ export default function DocumentDetail() {
         fetchDoc();
     }, [id]);
 
-    // Setup SSE for live progress tracking
+ 
     useEffect(() => {
         if (!doc) return;
         if (doc.status === JobStatus.COMPLETED || doc.status === JobStatus.FAILED) return;
@@ -55,9 +55,13 @@ export default function DocumentDetail() {
         evtSource.onmessage = (event) => {
             const data = JSON.parse(event.data);
             setProgressEvent(data.event);
-            setProgressLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), event: data.event }]);
             
-            // If completed or failed, refresh document
+            if (data.event === 'token_stream') {
+                setLiveSummary(prev => prev + data.payload.chunk);
+            } else {
+                setProgressLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), event: data.event }]);
+            }
+         
             if (data.event === 'job_completed' || data.event === 'job_failed') {
                 setTimeout(fetchDoc, 1000);
             }
@@ -105,6 +109,18 @@ export default function DocumentDetail() {
         }
     };
 
+    const handleCancel = async () => {
+        if (window.confirm('Are you sure you want to cancel this job?')) {
+            try {
+                await cancelDocumentJob(Number(id));
+                fetchDoc();
+            } catch (error) {
+                console.error(error);
+                alert('Failed to cancel');
+            }
+        }
+    };
+
     if (loading) return <div className="app-container"><div className="loading-spinner"></div></div>;
     if (!doc) return <div className="app-container">Document not found.</div>;
 
@@ -138,13 +154,22 @@ export default function DocumentDetail() {
                             Live Progress: <span className="animate-pulse">{progressEvent || doc.status}...</span>
                         </h3>
                         <div className="progress-container">
-                            <div className="progress-bar" style={{ width: progressEvent === 'job_started' ? '20%' : progressEvent.includes('parsing') ? '50%' : progressEvent.includes('extraction') ? '80%' : '100%' }}></div>
+                            <div className="progress-bar" style={{ width: progressEvent === 'job_started' ? '20%' : progressEvent.includes('parsing') ? '50%' : progressEvent.includes('extraction') ? '80%' : progressEvent === 'token_stream' ? '90%' : '100%' }}></div>
                         </div>
+                        {liveSummary && (
+                            <div style={{ marginTop: '1.5rem', background: 'rgba(0,0,0,0.4)', padding: '1rem', borderRadius: '8px', borderLeft: '3px solid var(--primary)' }}>
+                                <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 600 }}>AI Generating Summary</div>
+                                <div style={{ lineHeight: 1.6, color: 'var(--text-primary)' }}>{liveSummary}<span className="animate-pulse">|</span></div>
+                            </div>
+                        )}
                         <div style={{ marginTop: '1rem', maxHeight: '100px', overflowY: 'auto', fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
                             {progressLogs.map((log, i) => (
                                 <div key={i}>[{log.time}] - {log.event}</div>
                             ))}
                         </div>
+                        <button className="btn btn-outline" onClick={handleCancel} style={{ marginTop: '1rem', borderColor: 'var(--danger)', color: 'var(--danger)' }}>
+                            <XCircle size={18} /> Cancel Job
+                        </button>
                     </div>
                 )}
 

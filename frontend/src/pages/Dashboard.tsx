@@ -11,12 +11,14 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('');
+    const [sortBy, setSortBy] = useState<string>('created_at');
+    const [sortOrder, setSortOrder] = useState<string>('desc');
     const [isUploadOpen, setIsUploadOpen] = useState(false);
 
     const fetchDocs = async () => {
         setLoading(true);
         try {
-            const res = await getDocuments(0, 50, search, statusFilter as JobStatus || undefined);
+            const res = await getDocuments(0, 50, search, statusFilter as JobStatus || undefined, sortBy, sortOrder);
             setData(res);
         } catch (error) {
             console.error("Error fetching docs", error);
@@ -27,10 +29,19 @@ export default function Dashboard() {
 
     useEffect(() => {
         fetchDocs();
-        // Setup polling every 5s to refresh statuses on dashboard
+        
         const interval = setInterval(fetchDocs, 5000);
         return () => clearInterval(interval);
-    }, [search, statusFilter]);
+    }, [search, statusFilter, sortBy, sortOrder]);
+
+    const toggleSort = (field: string) => {
+        if (sortBy === field) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(field);
+            setSortOrder('desc');
+        }
+    };
 
     return (
         <div className="app-container">
@@ -42,6 +53,9 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     <a href={getExportUrl('csv')} className="btn btn-outline" target="_blank" rel="noreferrer">
                         <DownloadCloud size={18} /> Export CSV
+                    </a>
+                    <a href={getExportUrl('json')} className="btn btn-outline" target="_blank" rel="noreferrer">
+                        <DownloadCloud size={18} /> Export JSON
                     </a>
                     <button className="btn btn-primary" onClick={() => setIsUploadOpen(true)}>
                         <Upload size={18} /> Upload Document
@@ -80,9 +94,15 @@ export default function Dashboard() {
                 <table className="data-table">
                     <thead>
                         <tr>
-                            <th>Filename</th>
-                            <th>Status</th>
-                            <th>Uploaded At</th>
+                            <th onClick={() => toggleSort('filename')} style={{ cursor: 'pointer' }}>
+                                Filename {sortBy === 'filename' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                            </th>
+                            <th onClick={() => toggleSort('status')} style={{ cursor: 'pointer' }}>
+                                Status {sortBy === 'status' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                            </th>
+                            <th onClick={() => toggleSort('created_at')} style={{ cursor: 'pointer' }}>
+                                Uploaded At {sortBy === 'created_at' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                            </th>
                             <th>Finalized</th>
                             <th>Action</th>
                         </tr>
