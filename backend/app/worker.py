@@ -63,7 +63,7 @@ def process_document_task(self, document_id: int):
         # Real-time token streaming using Gemini or Mock
         summary_text = ""
         if settings.GEMINI_API_KEY:
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             prompt = f"Write a short, professional summary (3-4 sentences) for a generic '{document.filename}' document."
             response = model.generate_content(prompt, stream=True)
             for chunk in response:
