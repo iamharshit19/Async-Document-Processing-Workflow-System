@@ -18,6 +18,13 @@ from ..auth import get_current_user
 
 router = APIRouter()
 
+@router.delete("/all")
+def delete_all_documents(db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
+    db.query(ExtractedData).delete()
+    db.query(Document).delete()
+    db.commit()
+    return {"message": "All documents deleted"}
+
 @router.post("/upload", response_model=List[DocumentResponse])
 def upload_documents(files: List[UploadFile] = File(...), db: Session = Depends(get_db), current_user: str = Depends(get_current_user)):
     results = []

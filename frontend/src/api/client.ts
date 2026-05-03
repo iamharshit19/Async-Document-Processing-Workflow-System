@@ -69,5 +69,10 @@ export const cancelDocumentJob = async (id: number): Promise<Document> => {
     return response.data;
 };
 
+export const deleteAllDocuments = async (): Promise<{ message: string }> => {
+    const response = await api.delete('/documents/all');
+    return response.data;
+};
+
 export const getExportUrl = (format: 'csv' | 'json') => `${API_BASE_URL}/documents/export/${format}`;
 export const getProgressStreamUrl = (id: number) => `${API_BASE_URL}/progress/${id}/stream`;

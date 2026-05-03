@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Search, Filter, Upload, DownloadCloud, ChevronRight } from 'lucide-react';
-import { getDocuments, getExportUrl } from '../api/client';
+import { Search, Filter, Upload, DownloadCloud, ChevronRight, Trash2 } from 'lucide-react';
+import { getDocuments, getExportUrl, deleteAllDocuments } from '../api/client';
 import { JobStatus, type Document, type PaginatedDocuments } from '../types';
 import UploadModal from '../components/UploadModal';
 
@@ -51,6 +51,18 @@ export default function Dashboard() {
                     <p style={{ color: 'var(--text-secondary)' }}>Manage your asynchronous document processing.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button className="btn btn-outline" style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }} onClick={async () => {
+                        if (window.confirm('Are you sure you want to delete ALL documents? This cannot be undone.')) {
+                            try {
+                                await deleteAllDocuments();
+                                fetchDocs();
+                            } catch (err) {
+                                console.error('Delete failed', err);
+                            }
+                        }
+                    }}>
+                        <Trash2 size={18} /> Delete All
+                    </button>
                     <a href={getExportUrl('csv')} className="btn btn-outline" target="_blank" rel="noreferrer">
                         <DownloadCloud size={18} /> Export CSV
                     </a>
