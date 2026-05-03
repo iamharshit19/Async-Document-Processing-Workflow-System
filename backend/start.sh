@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Start Celery worker in the background
+# Start Celery worker in the background (concurrency=1 to save memory on free tier)
 echo "Starting Celery worker..."
-celery -A app.worker.celery_app worker --loglevel=info &
+celery -A app.worker.celery_app worker --loglevel=info --concurrency=1 &
 
 # Start FastAPI application
 echo "Starting FastAPI server..."
